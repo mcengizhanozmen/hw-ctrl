@@ -21,6 +21,7 @@ def read_ad():
 	volt3 = chan3.voltage
 	volt4 = chan4.voltage
 
+	'''
 	print("")
 	print("Voltage Values")
 	print("============================")
@@ -30,12 +31,14 @@ def read_ad():
 	print("4.:     {:6.3f} V".format(volt4))
 	print("=============================")
 	print("")
+	'''
 
 	r1 = (volt1 * 100) / (3.3 - volt1)
 	r2 = (volt2 * 100) / (3.3 - volt2)
 	r3 = (volt3 * 100) / (3.3 - volt3)
 	r4 = (volt4 * 100) / (3.3 - volt4)
 
+	'''
 	print("")
 	print("Resistance Values")
 	print("============================")
@@ -45,12 +48,14 @@ def read_ad():
 	print("4.:     {:6.3f} kOhm".format(r4))
 	print("=============================")
 	print("")
+	'''
 
 	temp1 = (1 / (A + B * ln(r1*1000) + C * (ln(r1*1000) ** 3))) - 273.15
 	temp2 = (1 / (A + B * ln(r2*1000) + C * (ln(r2*1000) ** 3))) - 273.15
 	temp3 = (1 / (A + B * ln(r3*1000) + C * (ln(r3*1000) ** 3))) - 273.15
 	temp4 = (1 / (A + B * ln(r4*1000) + C * (ln(r4*1000) ** 3))) - 273.15
 
+	'''
 	print("")
 	print("Temperature Values")
 	print("============================")
@@ -60,3 +65,6 @@ def read_ad():
 	print("4.:     {:6.1f} °C".format(temp4))
 	print("=============================")
 	print("")
+	'''
+	
+	return round(temp1,1), round(temp2,1), round(temp3,1), round(temp4,1)

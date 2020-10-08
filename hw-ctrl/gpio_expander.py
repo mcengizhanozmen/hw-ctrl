@@ -1,8 +1,8 @@
 from hil.i2c import I2C
-import adafruit_mcp230xx.mcp23017
+import adafruit.mcp23017
 import digitalio
 
-GPIO_EXP = adafruit_mcp230xx.mcp23017.MCP23017(I2C)
+GPIO_EXP = adafruit.mcp23017.MCP23017(I2C)
 
 GPA0 = GPIO_EXP.get_pin(0)
 GPA1 = GPIO_EXP.get_pin(1)
@@ -26,14 +26,14 @@ def setIO():
     GPA3.direction = digitalio.Direction.INPUT
     GPA4.direction = digitalio.Direction.INPUT
     GPA5.direction = digitalio.Direction.INPUT
-    
+
     GPB0.direction = digitalio.Direction.OUTPUT
     GPB1.direction = digitalio.Direction.OUTPUT
     GPB2.direction = digitalio.Direction.OUTPUT
     GPB3.direction = digitalio.Direction.OUTPUT
     GPB4.direction = digitalio.Direction.OUTPUT
 
-    GPB0.value = False
+    GPB0.value = True
     GPB1.value = False
     GPB2.value = False
     GPB3.value = False
@@ -41,7 +41,7 @@ def setIO():
 
 
 def checkIO():
-    
+
     print("")
 
     print("PIN #                    |DIR        |VALUE")
@@ -71,5 +71,5 @@ def checkIO():
         str(GPB3.direction).split('.')[2], "HIGH" if GPB3.value else "LOW"))
     print("GPB4 - KLS Power:        {}          {}".format(
         str(GPB4.direction).split('.')[2], "HIGH" if GPB4.value else "LOW"))
-    
+
     print("="*50+'\n')

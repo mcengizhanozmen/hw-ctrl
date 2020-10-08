@@ -4,7 +4,6 @@ adafruit-circuitpython-ads1x15==2.2.2
 adafruit-circuitpython-busdevice==4.3.2
 adafruit-circuitpython-ds3502==1.1.2
 adafruit-circuitpython-ina219==3.4.3
-adafruit-circuitpython-mcp230xx==2.4.1
 adafruit-circuitpython-register==1.9.0
 Adafruit-GPIO==1.0.3
 Adafruit-PlatformDetect==2.14.1

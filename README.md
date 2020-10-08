@@ -1,4 +1,4 @@
-# hw-ctrl
+# hil
 
 A Python package for controlling the hardware of Hardware-in-Loop
 
@@ -51,21 +51,47 @@ To make sure that certain libraries are installed correctly, please run the comm
 $ sudo apt-get install libatlas-base-dev && sudo pip3 install numpy && sudo pip3 install adafruit-circuitpython-mcp230xx && sudo pip3 install adafruit-circuitpython-ds3502 && sudo pip3 install adafruit-circuitpython-ina219
 ```
 
+It is important to configure GPIO pins every time RasPi turned on with the command below:
+
+```console
+    sudo python3 -m hil configure
+```
+
 ## Usage
 
-To start the testing environment:
+## Usage
 
-```console
-$ sudo python3 -m hil
-```
+To configure GPIO pins:
 
-To check the commands available:
+    sudo python3 -m hil configure
 
-```console
-(hil) >>> help
+For voltage and current values from three current sensors:
 
-Documented commands (type help <topic>):
-========================================
-```
+    sudo python3 -m hil currentsensor KL30
+    sudo python3 -m hil currentsensor KL15
+    sudo python3 -m hil currentsensor HSK
 
-You can check the functionality of these commands by writing 'help command'.
+For temperature values from four thermistor:
+
+    sudo python3 -m hil temperature
+
+To set a specified pin:
+
+    sudo python -m hil KL30 on
+    sudo python -m hil KL30 off
+    sudo python -m hil KL15 on
+    sudo python -m hil KL15 off
+    sudo python -m hil KLS on
+    sudo python -m hil KLS off
+
+For status of specified pins:
+
+    sudo python -m hil status
+
+To change the main voltage value:
+
+    sudo python3 -m hil setvoltage "voltage"
+
+To see available options:
+
+    sudo python3 -m hil help

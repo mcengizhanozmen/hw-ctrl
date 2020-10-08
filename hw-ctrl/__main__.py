@@ -1,159 +1,152 @@
-from hil import current_sensors, gpio_expander, ad_converter
-from cmd import Cmd
-import adafruit_ds3502
+from . import ad_converter, current_sensors, gpio_expander, prompt
+from .i2c import I2C
+
+import json
+import sys
 import time
-from hil.i2c import I2C
+import adafruit_ds3502
+
+args = sys.argv
 
 ds_3502 = adafruit_ds3502.DS3502(I2C)
 
-class HilPrompt(Cmd):
-    prompt = '(hil) >>> '
-    intro = """
+sensors = {
+            'KL30': current_sensors.cs_kl30,
+            'KL15': current_sensors.cs_kl15,
+            'HSK': current_sensors.cs_hsk
+            }
 
-    Starting HIL Test Interface...
+values = {
+            'on': True,
+            'off': False
+}
 
-    ##    ##   ##   ##
-    ##    ##   ##   ##
-    ########   ##   ##
-    ##    ##   ##   ##
-    ##    ##   ##   ########
 
-    Hardware-in-Loop v0.0.2
-    CarTelSol GmbH
+def configure():
+    gpio_expander.setIO()
 
-    For list of possible commands, please type 'help'.
+def get_voltage_current(pin):
+    voltage = sensors[pin].bus_voltage
+    current = sensors[pin].current
+    return voltage, current
 
-    """
+def get_temperature():
+    return ad_converter.read_ad()
 
-    def do_Read_IO(self, line):
-        '''\nRead direction and voltage-level values of pre-defined GPIO-pins\n'''
-        gpio_expander.checkIO()
+def set_pin(pin,value):
+    if pin == 'KL30':
+        gpio_expander.GPB1.value = values[value]
+        gpio_expander.GPB2.value = values[value]
+    elif pin == 'KL15':
+        gpio_expander.GPB3.value = values[value]
+    elif pin =='KLS':
+        gpio_expander.GPB4.value = values[value]
 
-    def do_Read_CurrentSensors(self, line):
-        '''\nRead the voltage levels measured by the current sensors\n'''
-        current_sensors.readSensors()
+def set_voltage(voltage):
+    voltage = round(voltage, 1)
+    note ='ok'
+    while(round(current_sensors.cs_kl30.bus_voltage, 1) != voltage):
+        if voltage > round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper != 0:
+            ds_3502.wiper = ds_3502.wiper - 1
+        elif voltage > round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper == 0:
+            # print("You reached the maximum possible voltage: {}".format(round(current_sensors.cs_kl30.bus_voltage, 1)))
+            note = 'max'
+            break
+        elif voltage < round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper != 127:
+            ds_3502.wiper = ds_3502.wiper + 1
+        elif voltage < round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper == 127:
+            # print("You reached the minimum possible voltage: {}".format(round(current_sensors.cs_kl30.bus_voltage, 1)))
+            note = 'min'
+            break
+        time.sleep(0.01)
+    return round(current_sensors.cs_kl30.bus_voltage, 1), note
+def help():
+    print('''
+    ===Available Options===
 
-    def do_Main_Power_ON(self, line):
-        '''\nTurn on main power\n'''
-        gpio_expander.GPB0.value = True
-        print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
+    To configure GPIO pins:
 
-    def do_Main_Power_OFF(self, line):
-        '''\nTurn off main power\n'''
-        gpio_expander.GPB0.value = False
-        gpio_expander.GPB1.value = False
-        gpio_expander.GPB2.value = False
-        gpio_expander.GPB3.value = False
-        gpio_expander.GPB4.value = False
-        print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
+        sudo python3 -m hil configure
 
-    def do_CDIS_Power_ON(self, line):
-        '''\nTurn on CDIS power if main power is already on\n'''
-        if gpio_expander.GPB0.value:
-            gpio_expander.GPB2.value = True
-            print("\nCDIS Power : {}\n".format("ON" if gpio_expander.GPB2.value else "OFF"))
-        else:
-            print("Please make sure main power is on first.")
-            print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
-            print("\nCDIS Power : {}\n".format("ON" if gpio_expander.GPB2.value else "OFF"))
+    For voltage and current values from three current sensors:
 
-    def do_CDIS_Power_OFF(self, line):
-        '''\nTurn off CDIS power\n'''
-        gpio_expander.GPB2.value = False
-        print("\nKL15 : {}\n".format("ON" if gpio_expander.GPB2.value else "OFF"))
+        sudo python3 -m hil currentsensor KL30
+        sudo python3 -m hil currentsensor KL15
+        sudo python3 -m hil currentsensor HSK
 
-    def do_HSK_Power_ON(self, line):
-        '''\nTurn on HSK power if main power is already on\n'''
-        if gpio_expander.GPB0.value:
-            gpio_expander.GPB1.value = True
-            print("\nHSK Power : {}\n".format("ON" if gpio_expander.GPB1.value else "OFF"))
-        else:
-            print("Please make sure main power is on first.")
-            print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
-            print("\nHSK Power  : {}\n".format("ON" if gpio_expander.GPB1.value else "OFF"))
+    For temperature values from four thermistor:
 
-    def do_HSK_Power_OFF(self, line):
-        '''\nTurn off HSK power\n'''
-        gpio_expander.GPB1.value = False
-        print("\nHSK Power : {}\n".format("ON" if gpio_expander.GPB1.value else "OFF"))
+        sudo python3 -m hil temperature
 
-    def do_KL15_ON(self, line):
-        '''\nTurn on KL15 if main power is already on\n'''
-        if gpio_expander.GPB0.value:
-            gpio_expander.GPB3.value = True
-            print("\nKL15 : {}\n".format("ON" if gpio_expander.GPB3.value else "OFF"))
-        else:
-            print("Please make sure main power is on first.")
-            print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
-            print("\nKL15       : {}\n".format("ON" if gpio_expander.GPB3.value else "OFF"))
+    For the status of a specified pin:
 
-    def do_KL15_OFF(self, line):
-        '''\nTurn off KL15 power\n'''
-        gpio_expander.GPB3.value = False
-        print("\nKL15 : {}\n".format("ON" if gpio_expander.GPB3.value else "OFF"))
+        sudo python -m hil KL30 on
+        sudo python -m hil KL30 off
+        sudo python -m hil KL15 on
+        sudo python -m hil KL15 off
+        sudo python -m hil KLS on
+        sudo python -m hil KLS off
 
-    def do_KLS_ON(self, line):
-        '''\nTurn on KLS if main power is already on\n'''
-        if gpio_expander.GPB0.value:
-            gpio_expander.GPB4.value = True
-            print("\nKLS : {}\n".format("ON" if gpio_expander.GPB4.value else "OFF"))
-        else:
-            print("Please make sure main power is on first.")
-            print("\nMain Power : {}\n".format("ON" if gpio_expander.GPB0.value else "OFF"))
-            print("\nKLS       : {}\n".format("ON" if gpio_expander.GPB4.value else "OFF"))
+    To change the main voltage value:
 
-    def do_KLS_OFF(self, line):
-        '''\nTurn off KLS power\n'''
-        gpio_expander.GPB4.value = False
-        print("\nKLS : {}\n".format("ON" if gpio_expander.GPB4.value else "OFF"))
+        sudo python3 -m hil setvoltage "voltage"
 
-    def do_Set_Voltage(self, arg):
-        '''\nSet the output voltage coming from  the voltage regulator: setVoltage <Voltage value in between 6 and 12>\n'''
-        args = arg.split()
-        try:
-            vltg = round(float(args[0]),1)
-        except:
-            print("\nMisusage of Set_Voltage command, please type 'help Set_Voltage'.\n")
-            return
-        if ((len(args) == 1) and (6 <= round(float(args[0]),1) <= 12)):
-            vltg = round(float(args[0]), 1)
-            while(round(current_sensors.cs_kl30.bus_voltage, 1) != vltg):
-                if vltg > round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper != 0:
-                    ds_3502.wiper = ds_3502.wiper - 1
-                elif vltg > round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper == 0:
-                    print("You reached the maximum possible voltage: {}".format(round(current_sensors.cs_kl30.bus_voltage, 1)))
-                    break
-                elif vltg < round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper != 127:
-                    ds_3502.wiper = ds_3502.wiper + 1
-                elif vltg < round(current_sensors.cs_kl30.bus_voltage, 1) and ds_3502.wiper == 127:
-                    print("You reached the minimum possible voltage: {}".format(round(current_sensors.cs_kl30.bus_voltage, 1)))
-                    break
-                time.sleep(0.01)
-        else:
-            print("\nMisusage of setVoltage command, please type 'help Set_Voltage'.\n")
+    To see available options:
 
-    def do_Read_AD(self, line):
-        '''\nRead temperature, voltage, and resistance values from AD-Converter\n'''
-        ad_converter.read_ad()
-
-    def do_Set_Currentsensor_Precision(self, arg):
-        '''
-        \nSet the precision of the current sensor
-        For high precision enter 'Set_Currentsensor_Precision H'
-        For standard precision enter 'Set_Currentsensor_Precision S'\n
-        '''
-        args = arg.split()
-        try:
-            current_sensors.precision_calibration(args[0])
-        except:
-            print("\nPrecision change failed.\n")
-
-    def do_exit(self, inp):
-        '''\nExit test interface\n'''
-        print("\nSuccesfully exiting HIL...\n")
-        return True
-
+        sudo python3 -m hil help
+    ''')
 
 if __name__ == '__main__':
-    gpio_expander.setIO()
-    HilPrompt().cmdloop()
+
+    if args[1] == 'configure':
+        configure()
+
+    elif args[1] == 'temperature':
+        temp1, temp2, temp3, temp4 = get_temperature()
+        dict = {
+                'temperature1': temp1,
+                'temperature2': temp2,
+                'temperature3': temp3,
+                'temperature4': temp4
+        }
+        print(json.dumps(dict, indent=4))
+
+    elif args[1] == 'help':
+        help()
+
+    elif args[1] == 'status':
+        status()
+        dict = {
+                'KL30': seulav[gpio_expander.GPB2.value],
+                'KL15': seulav[gpio_expander.GPB3.value],
+                'KLS': seulav[gpio_expander.GPB4.value]
+        }
+        print(json.dumps(dict, indent=4))
+
+    elif args[1] == 'prompt':
+        prompt.main()    
+
+    elif (args[1] == 'currentsensor') and (args[2] in ['KL30','KL15','HSK']):
+        voltage, current = get_voltage_current(args[2])
+        dict = {
+                'voltage': round(voltage,3),
+                'current': round(current,3)
+        }
+        print(json.dumps(dict, indent=4))
+
+    elif args[1] == 'setvoltage':
+        try:
+            voltage, note = set_voltage(float(args[2]))
+            dict = {
+                    'voltage': voltage,
+                    'note': note
+            }
+            print(json.dumps(dict, indent=4))
+        except:
+            print("Misusage of entered command")
+
+    elif args[1] in ['KL30','KL15','KLS'] and args[2] in ['on','off']:
+        set_pin(args[1],args[2])
+
+    else:
+        print("Misusage of entered command")
