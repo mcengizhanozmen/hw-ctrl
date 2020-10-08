@@ -1,4 +1,4 @@
-from hil.i2c import I2C
+from .i2c import I2C
 import adafruit_ina219
 
 cs_kl30 = adafruit_ina219.INA219(I2C, 0x40)

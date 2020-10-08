@@ -1,4 +1,4 @@
-# hil
+# hw-ctrl
 
 A Python package for controlling the hardware of Hardware-in-Loop
 
@@ -56,8 +56,6 @@ It is important to configure GPIO pins every time RasPi turned on with the comma
 ```console
     sudo python3 -m hil configure
 ```
-
-## Usage
 
 ## Usage
 

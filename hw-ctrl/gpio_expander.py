@@ -1,4 +1,4 @@
-from hil.i2c import I2C
+from .i2c import I2C
 import adafruit.mcp23017
 import digitalio
 

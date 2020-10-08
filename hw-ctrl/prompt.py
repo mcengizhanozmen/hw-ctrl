@@ -1,8 +1,8 @@
-from hil import current_sensors, gpio_expander, ad_converter
+from . import current_sensors, gpio_expander, ad_converter
 from cmd import Cmd
 import adafruit_ds3502
 import time
-from hil.i2c import I2C
+from .i2c import I2C
 
 ds_3502 = adafruit_ds3502.DS3502(I2C)
 

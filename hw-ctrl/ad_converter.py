@@ -1,4 +1,4 @@
-from hil.i2c import I2C
+from .i2c import I2C
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 from numpy import log as ln
@@ -66,5 +66,5 @@ def read_ad():
 	print("=============================")
 	print("")
 	'''
-	
+
 	return round(temp1,1), round(temp2,1), round(temp3,1), round(temp4,1)
