@@ -4,10 +4,10 @@ A Python package for controlling the hardware of Hardware-in-Loop
 
 ## Installation
 
-First, one needs to clone into the [hil-repository](https://git.cartelsol.info/minicate/hil-py).
+First, one needs to clone into the repository.
 
 ```console
-$ git clone git@git.cartelsol.info:minicate/hil-py.git
+$ git clone https://github.com/mcengizhanozmen/hw-ctrl.git
 $ cd hil-py
 ```
 
